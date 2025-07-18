@@ -4,9 +4,14 @@ import { eq } from "drizzle-orm";
 import { NumberResponse, NumberRequest } from ".";
 
 export class NumberService {
-  public async create(data: NumberRequest): Promise<NumberResponse> {
-    const now = new Date();
+  public async create(data: NumberRequest): Promise<NumberResponse | undefined> {
 
+    const exists = await this.exists(data.phoneNumber)
+    if (exists) {
+      return undefined
+    }
+
+    const now = new Date();
     const [inserted] = await db
       .insert(phoneNumbersTable)
       .values({
@@ -20,9 +25,40 @@ export class NumberService {
     const response: NumberResponse = {
       id: inserted.id,
       phoneNumber: inserted.phoneNumber,
-      status: inserted.status==true,
+      status: inserted.status == true,
     };
 
     return response;
+  }
+
+  public async update(data: NumberRequest): Promise<NumberResponse | undefined> {
+
+    const exists = await this.exists(data.phoneNumber)
+    if (!exists) {
+      return undefined
+    }
+
+    const [updated] = await db
+      .update(phoneNumbersTable)
+      .set({ status: false })
+      .where(eq(phoneNumbersTable.phoneNumber, data.phoneNumber))
+      .returning()
+
+    const response: NumberResponse = {
+      id: updated.id,
+      phoneNumber: updated.phoneNumber,
+      status: updated.status === true,
+    };
+
+    return response
+  }
+
+  private async exists(phoneNumber: string) {
+    const [exists] = await db
+      .select()
+      .from(phoneNumbersTable)
+      .where(eq(phoneNumbersTable.phoneNumber, phoneNumber))
+
+    return exists
   }
 }

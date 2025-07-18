@@ -1,4 +1,28 @@
+import { phoneNumbersTable } from "../db/schema";
+import { db } from "../db/db"; // your drizzle instance
+import { eq } from "drizzle-orm";
+import { NumberResponse, NumberRequest } from ".";
+
 export class NumberService {
-    // any is bad use actual types
-    public async create(data: any): Promise<any> {}
+  public async create(data: NumberRequest): Promise<NumberResponse> {
+    const now = new Date();
+
+    const [inserted] = await db
+      .insert(phoneNumbersTable)
+      .values({
+        phoneNumber: data.phoneNumber,
+        status: data.status ?? true,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+
+    const response: NumberResponse = {
+      id: inserted.id,
+      phoneNumber: inserted.phoneNumber,
+      status: inserted.status==true,
+    };
+
+    return response;
+  }
 }

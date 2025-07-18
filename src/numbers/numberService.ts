@@ -25,4 +25,17 @@ export class NumberService {
 
     return response;
   }
+
+  public async getAvailableNumbers(): Promise<NumberResponse[]> {
+    const result = await db
+      .select()
+      .from(phoneNumbersTable)
+      .where(eq(phoneNumbersTable.status, false));
+
+    return result.map((row) => ({
+      id: row.id,
+      phoneNumber: row.phoneNumber,
+      status: row.status,
+    }));
+  }
 }

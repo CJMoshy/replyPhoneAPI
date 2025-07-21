@@ -30,6 +30,37 @@ export class NumberService {
     return response;
   }
 
+  public async update(data: NumberRequest): Promise<NumberResponse | undefined> {
+
+    const exists = await this.exists(data.phoneNumber)
+    if (!exists) {
+      return undefined
+    }
+
+    const [updated] = await db
+      .update(phoneNumbersTable)
+      .set({ status: false })
+      .where(eq(phoneNumbersTable.phoneNumber, data.phoneNumber))
+      .returning()
+
+    const response: NumberResponse = {
+      id: updated.id,
+      phoneNumber: updated.phoneNumber,
+      status: updated.status === true,
+    };
+
+    return response
+  }
+
+  private async exists(phoneNumber: string) {
+    const [exists] = await db
+      .select()
+      .from(phoneNumbersTable)
+      .where(eq(phoneNumbersTable.phoneNumber, phoneNumber))
+
+    return exists
+  }
+
   public async getAvailableNumbers(): Promise<NumberResponse[]> {
     const result = await db
       .select()

@@ -10,3 +10,12 @@ services:
       - "5432:5432"
     volumes:
       - ./sql/databases.sql:/docker-entrypoint-initdb.d/1.databases.sql
+
+  api:
+    image: reply-phone-api
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+    depends_on:
+      - postgres
+    ports:
+      - "3001:3001"

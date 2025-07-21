@@ -8,10 +8,11 @@ export class NumberService {
   public async create(data: NumberRequest): Promise<NumberResponse | undefined> {
     // Validate the request
     await validateOrReject(Object.assign(new NumberRequest(), data));
-      const exists = await this.exists(data.phoneNumber)
-      if (exists) {
-        return undefined
-      }
+    
+    const exists = await this.exists(data.phoneNumber)
+    if (exists) {
+      return undefined
+    }
 
     const now = new Date();
 

@@ -23,6 +23,7 @@
     "vitest": "*"
   },
   "dependencies": {
+    "class-validator": "^0.14.2",
     "cors": "*",
     "dotenv": "^17.2.0",
     "drizzle-orm": "^0.44.3",

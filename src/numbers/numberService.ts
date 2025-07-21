@@ -2,9 +2,13 @@ import { phoneNumbersTable } from "../db/schema";
 import { db } from "../db/db"; // your drizzle instance
 import { eq } from "drizzle-orm";
 import { NumberResponse, NumberRequest } from ".";
+import { validateOrReject } from "class-validator";
 
 export class NumberService {
   public async create(data: NumberRequest): Promise<NumberResponse> {
+    // Validate the request
+    await validateOrReject(Object.assign(new NumberRequest(), data));
+
     const now = new Date();
 
     const [inserted] = await db
@@ -20,7 +24,7 @@ export class NumberService {
     const response: NumberResponse = {
       id: inserted.id,
       phoneNumber: inserted.phoneNumber,
-      status: inserted.status==true,
+      status: inserted.status === true,
     };
 
     return response;

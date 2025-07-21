@@ -15,7 +15,6 @@ import KeyService from "../key/keyService";
 
 @Route("number")
 export class MemberController extends Controller {
-    // API to add an available phone number onto the database.
     @Post()
     @Response("401", "Unauthorized")
     @Response("409", "Conflict")
@@ -37,18 +36,11 @@ export class MemberController extends Controller {
     }
 
     @Put()
-    @Response("401", "Unauthorized")
     @Response("404", "Phone Number Not Found")
     @SuccessResponse("200", "Phone Number Updated")
     public async update(
-        @Header() key: string,
         @Body() data: NumberRequest,
     ): Promise<NumberResponse | undefined> {
-        const authorized = await new KeyService().check(key)
-        if (!authorized) {
-            this.setStatus(401)
-            return
-        }
         const response = await new NumberService().update(data)
         if (response === undefined) {
             this.setStatus(404)
@@ -56,12 +48,10 @@ export class MemberController extends Controller {
         return response
     }
 
-    // API to fetch the list of available phone numbers.
-    @Get("/available")
+    @Get()
     @SuccessResponse("200", "List of Available Numbers")
     @Response("500", "Internal Server Error")
     public async getAvailablePhoneNumbers(): Promise<NumberResponse[]> {
-        const service = new NumberService();
-        return await service.getAvailableNumbers();
+        return await new NumberService().getAvailableNumbers();
     }
 }

@@ -15,6 +15,7 @@ export default defineConfig({
             ],
             exclude: [
                 'src/server.ts',
+                'src/db/**',
                 '**/index.ts',
                 '**/index.d.ts',
             ],

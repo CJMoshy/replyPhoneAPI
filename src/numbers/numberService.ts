@@ -2,16 +2,18 @@ import { phoneNumbersTable } from "../db/schema";
 import { db } from "../db/db"; // your drizzle instance
 import { eq } from "drizzle-orm";
 import { NumberResponse, NumberRequest } from ".";
-import { validateOrReject } from "class-validator";
 
 export class NumberService {
   public async create(data: NumberRequest): Promise<NumberResponse | undefined> {
-    // Validate the request
-    await validateOrReject(Object.assign(new NumberRequest(), data));
-      const exists = await this.exists(data.phoneNumber)
-      if (exists) {
-        return undefined
-      }
+    const phoneRegex = /^(?:\+1\s?)?(?:\(?\d{3}\)?[\s.-]?)?\d{3}[\s.-]?\d{4}$/;
+    if (!phoneRegex.test(data.phoneNumber)) {
+      return undefined
+    }
+
+    const exists = await this.exists(data.phoneNumber)
+    if (exists) {
+      return undefined
+    }
 
     const now = new Date();
 
@@ -43,7 +45,7 @@ export class NumberService {
 
     const [updated] = await db
       .update(phoneNumbersTable)
-      .set({ status: false })
+      .set({ status: false, updatedAt: new Date() })
       .where(eq(phoneNumbersTable.phoneNumber, data.phoneNumber))
       .returning()
 
@@ -78,3 +80,4 @@ export class NumberService {
     }));
   }
 }
+

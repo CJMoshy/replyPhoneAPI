@@ -71,7 +71,7 @@ export class NumberService {
     const result = await db
       .select()
       .from(phoneNumbersTable)
-      .where(eq(phoneNumbersTable.status, false));
+      .where(eq(phoneNumbersTable.status, true));
 
     return result.map((row) => ({
       id: row.id,

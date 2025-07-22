@@ -40,7 +40,7 @@ const addNumber = async (number: string, expectedCode: number) => {
     await supertest(server).
         post(URL)
         .set("key", "testapikey")
-        .send({ phoneNumber: number, status: false })
+        .send({ phoneNumber: number, status: true })
         .expect(expectedCode)
 }
 

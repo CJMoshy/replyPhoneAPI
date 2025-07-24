@@ -53,6 +53,14 @@ const updateNumber = async (number: string, expectedCode: number) => {
     return response
 }
 
+const deleteNumber = async (number: string, expectedCode: number) => {
+    const response = await supertest(server)
+        .delete(URL + "/" + number)
+        .set("key", "testapikey")
+        .expect(expectedCode)
+    return response
+}
+
 describe("Test Suite for Phone number API", () => {
 
     test("Cannot add a number without API key", async () => {
@@ -145,6 +153,28 @@ describe("Test Suite for Phone number API", () => {
             expect(body).toBeDefined()
             expect((body as NumberResponse[]).length).toBe(3)
             expect((body as NumberResponse[])[0].phoneNumber).toBe("+14151234567")
+        })
+    })
+
+    describe("Deleting Numbers", () => {
+
+        test("Cannot delete a number without API key", async () => {
+            await supertest(server)
+                .delete(URL + "/+14151234567")
+                .set("key", "notvalidkey")
+                .expect(401)
+        })
+
+        test("Cannot delete a number that does not exist", async () => {
+            const response = await deleteNumber("+14151234567", 404)
+            expect(response.body).toBeDefined()
+        })
+
+        test("Delete a Number", async () => {
+            await addNumber("+14151234567", 201)
+            const response = await deleteNumber("+14151234567", 200)
+            expect(response.body).toBeDefined()
+            expect(response.body.phoneNumber).toBe("+14151234567")
         })
     })
 })

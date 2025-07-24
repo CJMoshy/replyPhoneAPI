@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Delete,
     Get,
     Header,
     Post,
@@ -8,13 +9,14 @@ import {
     Response,
     Route,
     SuccessResponse,
+    Path
 } from "tsoa";
 import { NumberService } from "./numberService";
 import { NumberRequest, NumberResponse } from "."
 import KeyService from "../key/keyService";
 
 @Route("number")
-export class MemberController extends Controller {
+export class NumberController extends Controller {
     @Post()
     @Response("401", "Unauthorized")
     @Response("409", "Conflict")
@@ -53,5 +55,24 @@ export class MemberController extends Controller {
     @Response("500", "Internal Server Error")
     public async getAvailablePhoneNumbers(): Promise<NumberResponse[]> {
         return await new NumberService().getAvailableNumbers();
+    }
+
+    @Delete("{phoneNumber}")
+    @Response("404", "Phone Number Not Found")
+    @SuccessResponse("200", "Phone Number Deleted")
+    public async delete(
+        @Header() key: string,
+        @Path() phoneNumber: string
+    ): Promise<NumberResponse | undefined> {
+        const authorized = await new KeyService().check(key)
+        if (!authorized) {
+            this.setStatus(401)
+            return
+        }
+        const response = await new NumberService().delete(phoneNumber);
+        if (response === undefined) {
+            this.setStatus(404)
+        }
+        return response
     }
 }

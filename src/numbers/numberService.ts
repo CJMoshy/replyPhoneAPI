@@ -4,6 +4,16 @@ import { eq } from "drizzle-orm";
 import { NumberResponse, NumberRequest } from ".";
 
 export class NumberService {
+
+  private async exists(phoneNumber: string) {
+    const [exists] = await db
+      .select()
+      .from(phoneNumbersTable)
+      .where(eq(phoneNumbersTable.phoneNumber, phoneNumber))
+
+    return exists
+  }
+
   public async create(data: NumberRequest): Promise<NumberResponse | undefined> {
     const phoneRegex = /^(?:\+1\s?)?(?:\(?\d{3}\)?[\s.-]?)?\d{3}[\s.-]?\d{4}$/;
     if (!phoneRegex.test(data.phoneNumber)) {
@@ -58,15 +68,6 @@ export class NumberService {
     return response
   }
 
-  private async exists(phoneNumber: string) {
-    const [exists] = await db
-      .select()
-      .from(phoneNumbersTable)
-      .where(eq(phoneNumbersTable.phoneNumber, phoneNumber))
-
-    return exists
-  }
-
   public async getAvailableNumbers(): Promise<NumberResponse[]> {
     const result = await db
       .select()
@@ -78,6 +79,26 @@ export class NumberService {
       phoneNumber: row.phoneNumber,
       status: row.status,
     }));
+  }
+
+  public async delete(phoneNumber: string): Promise<NumberResponse | undefined> {
+    const exists = await this.exists(phoneNumber)
+    if (!exists) {
+      return undefined
+    }
+
+    const [deleted] = await db
+      .delete(phoneNumbersTable)
+      .where(eq(phoneNumbersTable.phoneNumber, phoneNumber))
+      .returning()
+
+    const response: NumberResponse = {
+      id: deleted.id,
+      phoneNumber: deleted.phoneNumber,
+      status: deleted.status === true,
+    };
+
+    return response
   }
 }
 

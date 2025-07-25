@@ -57,6 +57,13 @@ export class NumberController extends Controller {
         return await new NumberService().getAvailableNumbers();
     }
 
+    @Get("/all")
+    @SuccessResponse("200", "List of Available Numbers")
+    @Response("500", "Internal Server Error")
+    public async getAllPhoneNumbers(): Promise<NumberResponse[]> {
+        return await new NumberService().getAllNumbers();
+    }
+
     @Delete("{phoneNumber}")
     @Response("404", "Phone Number Not Found")
     @SuccessResponse("200", "Phone Number Deleted")

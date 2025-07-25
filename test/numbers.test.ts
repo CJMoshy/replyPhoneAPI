@@ -44,11 +44,11 @@ const addNumber = async (number: string, expectedCode: number) => {
         .expect(expectedCode)
 }
 
-const updateNumber = async (number: string, expectedCode: number) => {
+const updateNumber = async (number: string, status: boolean, expectedCode: number) => {
     const response = await supertest(server)
         .put(URL)
         .set("key", "testapikey")
-        .send({ phoneNumber: number })
+        .send({ phoneNumber: number, status })
         .expect(expectedCode)
     return response
 }
@@ -118,6 +118,16 @@ describe("Test Suite for Phone number API", () => {
             await addNumber("+14151234567", 201)
         })
 
+        test("Add A Number with no status defaults to true", async () => {
+            const response = await supertest(server).
+                post(URL)
+                .set("key", "testapikey")
+                .send({ phoneNumber: "+14151234567" })
+                .expect(201)
+            expect(response.body.status).toBeDefined()
+            expect(response.body.status).toBe(true)
+        })
+
         test("Cannot add the same number twice", async () => {
             await addNumber("+14151234567", 201)
             await addNumber("+14151234567", 409)
@@ -126,15 +136,38 @@ describe("Test Suite for Phone number API", () => {
     })
 
     describe("Updating Numbers", () => {
-        test("Update a Number", async () => {
+        test("Update a Number - taken", async () => {
             await addNumber("+14151234567", 201)
-            const response = await updateNumber("+14151234567", 200)
+            const response = await updateNumber("+14151234567", false, 200)
+            expect(response.body.status).toBeDefined()
+            expect(response.body.status).toBe(false)
+        })
+
+        test("Update a Number - available", async () => {
+            await addNumber("+14151234567", 201)
+            const response = await updateNumber("+14151234567", false, 200)
+            expect(response.body.status).toBeDefined()
+            expect(response.body.status).toBe(false)
+
+            // Now update it back to available
+            const response2 = await updateNumber("+14151234567", true, 200)
+            expect(response2.body.status).toBeDefined()
+            expect(response2.body.status).toBe(true)
+        })
+
+        test("Update number with no status makes it unavailable", async () => {
+            await addNumber("+14151234567", 201)
+            const response = await supertest(server)
+                .put(URL)
+                .set("key", "testapikey")
+                .send({ phoneNumber: "+14151234567" })
+                .expect(200)
             expect(response.body.status).toBeDefined()
             expect(response.body.status).toBe(false)
         })
 
         test("Update number 404 not found", async () => {
-            await updateNumber("+14151234567", 404)
+            await updateNumber("+14151234567", false, 404)
         })
 
     })
@@ -154,27 +187,61 @@ describe("Test Suite for Phone number API", () => {
             expect((body as NumberResponse[]).length).toBe(3)
             expect((body as NumberResponse[])[0].phoneNumber).toBe("+14151234567")
         })
-    })
 
-    describe("Deleting Numbers", () => {
-
-        test("Cannot delete a number without API key", async () => {
-            await supertest(server)
-                .delete(URL + "/+14151234567")
-                .set("key", "notvalidkey")
-                .expect(401)
-        })
-
-        test("Cannot delete a number that does not exist", async () => {
-            const response = await deleteNumber("+14151234567", 404)
-            expect(response.body).toBeDefined()
-        })
-
-        test("Delete a Number", async () => {
+        test("Get Phone Numbers only returns available numbers", async () => {
             await addNumber("+14151234567", 201)
-            const response = await deleteNumber("+14151234567", 200)
-            expect(response.body).toBeDefined()
-            expect(response.body.phoneNumber).toBe("+14151234567")
+            await addNumber("+14151234568", 201)
+            await addNumber("+14151234569", 201)
+
+            // Update one number to unavailable
+            await updateNumber("+14151234567", false, 200)
+
+            const response = await supertest(server)
+                .get(URL)
+                .expect(200)
+
+            const { body } = response
+            expect(body).toBeDefined()
+            expect((body as NumberResponse[]).length).toBe(2)
+            expect((body as NumberResponse[])[0].phoneNumber).toBe("+14151234568")
+        })
+
+        test("Get All Phone Numbers", async () => {
+            await addNumber("+14151234567", 201)
+            await addNumber("+14151234568", 201)
+            await addNumber("+14151234569", 201)
+
+            await updateNumber("+14151234567", false, 200)
+            const response = await supertest(server)
+                .get(URL + "/all")
+                .expect(200)
+
+            const { body } = response
+            expect(body).toBeDefined()
+            expect((body as NumberResponse[]).length).toBe(3)
+            expect((body as NumberResponse[]).some(obj => obj.phoneNumber === "+14151234567")).toBe(true)
+        })
+
+        describe("Deleting Numbers", () => {
+
+            test("Cannot delete a number without API key", async () => {
+                await supertest(server)
+                    .delete(URL + "/+14151234567")
+                    .set("key", "notvalidkey")
+                    .expect(401)
+            })
+
+            test("Cannot delete a number that does not exist", async () => {
+                const response = await deleteNumber("+14151234567", 404)
+                expect(response.body).toBeDefined()
+            })
+
+            test("Delete a Number", async () => {
+                await addNumber("+14151234567", 201)
+                const response = await deleteNumber("+14151234567", 200)
+                expect(response.body).toBeDefined()
+                expect(response.body.phoneNumber).toBe("+14151234567")
+            })
         })
     })
 })

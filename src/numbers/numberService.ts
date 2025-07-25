@@ -55,7 +55,7 @@ export class NumberService {
 
     const [updated] = await db
       .update(phoneNumbersTable)
-      .set({ status: false, updatedAt: new Date() })
+      .set({ status: data.status || false, updatedAt: new Date() })
       .where(eq(phoneNumbersTable.phoneNumber, data.phoneNumber))
       .returning()
 
@@ -73,6 +73,16 @@ export class NumberService {
       .select()
       .from(phoneNumbersTable)
       .where(eq(phoneNumbersTable.status, true));
+
+    return result.map((row) => ({
+      id: row.id,
+      phoneNumber: row.phoneNumber,
+      status: row.status,
+    }));
+  }
+
+  public async getAllNumbers(): Promise<NumberResponse[]> {
+    const result = await db.select().from(phoneNumbersTable);
 
     return result.map((row) => ({
       id: row.id,

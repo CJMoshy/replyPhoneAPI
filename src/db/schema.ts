@@ -3,6 +3,7 @@ import { pgTable, uuid, varchar, boolean, timestamp } from "drizzle-orm/pg-core"
 export const phoneNumbersTable = pgTable("phone_numbers", {
   id: uuid().defaultRandom().primaryKey(),
   phoneNumber: varchar({ length: 20 }).notNull(),
+  email:varchar({length:100}).default("unassigned"),
   status: boolean().notNull().default(true),
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),

@@ -8,6 +8,13 @@
       "when": 1753126566509,
       "tag": "0000_overconfident_husk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1755802917048,
+      "tag": "0001_add-email-field",
+      "breakpoints": true
     }
   ]
 }

@@ -10,3 +10,17 @@ export interface NumberRequest {
   phoneNumber: string;
   status?: boolean; // optional, defaults to true
 }
+
+export interface NumberCreateData{
+  phoneNumber:string;
+  email?:string;
+  status?:boolean;
+}
+
+export interface NewNumberResponse{
+  id:string;
+  phoneNumber:string;
+  status:boolean;
+  email:string;
+}
+

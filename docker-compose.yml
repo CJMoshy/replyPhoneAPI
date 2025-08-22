@@ -1,42 +1,21 @@
-# services:
-#   postgres:
-#     container_name: replyQuickPhoneAPI
-#     image: postgres
-#     environment:
-#       POSTGRES_DB: postgres
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: postgres
-#     ports:
-#       - "5432:5432"
-#     volumes:
-#       - ./sql/databases.sql:/docker-entrypoint-initdb.d/1.databases.sql
-
-#   api:
-#     image: reply-phone-api
-#     environment:
-#       DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
-#     depends_on:
-#       - postgres
-#     ports:
-#       - "3001:3001"
-
-
-
-version: "3.8"
-
 services:
   postgres:
-    image: postgres:15
-    container_name: local-postgres
-    restart: always
+    container_name: replyQuickPhoneAPI
+    image: postgres
     environment:
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: dhruvmittal
-      POSTGRES_DB: replyquick
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./sql/databases.sql:/docker-entrypoint-initdb.d/1.databases.sql
 
-volumes:
-  postgres_data:
+  api:
+    image: reply-phone-api
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+    depends_on:
+      - postgres
+    ports:
+      - "3001:3001"

@@ -12,7 +12,7 @@ import {
     Path
 } from "tsoa";
 import { NumberService } from "./numberService";
-import { NumberRequest, NumberResponse } from "."
+import { NumberRequest, NumberResponse,NewNumberResponse, NumberCreateData } from "."
 import KeyService from "../key/keyService";
 
 @Route("number")
@@ -41,7 +41,7 @@ export class NumberController extends Controller {
     @Response("404", "Phone Number Not Found")
     @SuccessResponse("200", "Phone Number Updated")
     public async update(
-        @Body() data: NumberRequest,
+        @Body() data: NumberCreateData,
     ): Promise<NumberResponse | undefined> {
         const response = await new NumberService().update(data)
         if (response === undefined) {
@@ -82,4 +82,31 @@ export class NumberController extends Controller {
         }
         return response
     }
+
+
+    // below is dhruv's code
+
+    
+    // user to which the number belongs
+    // status is true if number is  unassigned
+    // status is false if number is assigned to a user
+    // display all numbers if status is false return username, if status us true userid value is unassigned
+    // add user name field as a migration to the phone numbers table using alter table command
+
+
+    @Get("/with_user")
+    @SuccessResponse("200","List of Numbers with Usernames")
+    @Response("500","Internal Server Error")
+    public async getNumbersWithUser(): Promise<NewNumberResponse[]> {
+        return await new NumberService().getNumbersWithUser();
+    }
+
+    @Get("/unassigned")
+    @SuccessResponse("200","List of unassigned numbers")
+    @Response("500","Internal Server Error")
+    public async getUnassignedNumbers(): Promise<NumberResponse[]> {
+        return await new NumberService().getUnassignedNumbers();
+    }
+
+
 }
